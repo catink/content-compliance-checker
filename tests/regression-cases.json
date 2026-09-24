@@ -1,0 +1,73 @@
+{
+  "description": "源项目语义适配和确定性组合规则的回归案例。strict=false 代表关闭远程严格词库仍必须成立。",
+  "cases": [
+    {
+      "text": "接单毕业设计",
+      "strict": false,
+      "expected": { "xiaohongshu": "risk", "xianyu": "risk", "douyin": "risk" },
+      "category": "学术代做与接单组合"
+    },
+    {
+      "text": "承接课程设计",
+      "strict": false,
+      "expected": { "xiaohongshu": "risk", "xianyu": "risk", "douyin": "risk" },
+      "category": "学术代做与接单组合"
+    },
+    {
+      "text": "帮做开题报告",
+      "strict": false,
+      "expected": { "xiaohongshu": "risk", "xianyu": "risk", "douyin": "risk" },
+      "category": "学术代做与接单组合"
+    },
+    {
+      "text": "四六级答案包过",
+      "strict": false,
+      "expected": { "xiaohongshu": "risk", "xianyu": "risk", "douyin": "risk" },
+      "category": "考试答案与包过组合"
+    },
+    {
+      "text": "毕业设计经验分享",
+      "strict": false,
+      "expected": { "xiaohongshu": "pass", "xianyu": "pass", "douyin": "pass" },
+      "category": null
+    },
+    {
+      "text": "平面设计接单",
+      "strict": false,
+      "expected": { "xiaohongshu": "pass", "xianyu": "pass", "douyin": "pass" },
+      "category": null
+    },
+    {
+      "text": "课程资料合集",
+      "strict": false,
+      "expected": { "xiaohongshu": "pass", "xianyu": "risk", "douyin": "pass" },
+      "category": "网课/教辅/电子资源与侵权交付组合"
+    },
+    {
+      "text": "批量剪辑软件",
+      "strict": false,
+      "expected": { "xiaohongshu": "pass", "xianyu": "pass", "douyin": "pass" },
+      "category": null
+    },
+    {
+      "text": "批量涨粉软件",
+      "strict": false,
+      "expected": { "xiaohongshu": "risk", "xianyu": "risk", "douyin": "risk" },
+      "category": "自动化刷量/托管组合"
+    },
+    {
+      "text": "加微 信号：abcde123",
+      "strict": true,
+      "expected": { "xiaohongshu": "risk", "xianyu": "risk", "douyin": "risk" },
+      "category": "联系方式与站外导流",
+      "sourceBehavior": "dvai/xiaohongshu-checker regex"
+    },
+    {
+      "text": "3天见效",
+      "strict": true,
+      "expected": { "xiaohongshu": "risk", "xianyu": "pass", "douyin": "pass" },
+      "category": "承诺保证与见效时效",
+      "sourceBehavior": "dvai/xiaohongshu-checker regex"
+    }
+  ]
+}
