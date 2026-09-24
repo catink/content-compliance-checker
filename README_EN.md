@@ -199,7 +199,7 @@ Issues and pull requests are welcome for:
 
 - platform rules with explicit sources;
 - verified false-positive or false-negative cases;
-- improvements to Chinese, English and variant matching;
+- improvements to Chinese phrasing, homophones, split-character variants and platform-specific auxiliary signals;
 - support for additional platforms; and
 - accessibility, mobile and offline improvements.
 
