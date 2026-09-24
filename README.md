@@ -41,7 +41,7 @@ http://localhost:8000
 
 ### 方法三：部署到 GitHub Pages
 
-在 GitHub 仓库设置中启用 Pages，并把发布目录设置为 `dist`。也可以使用 GitHub Actions 把 `dist` 目录发布到 Pages。
+仓库已包含 `.github/workflows/pages.yml`，启用 GitHub Pages 的 GitHub Actions 发布源后，每次推送到 `main` 都会自动发布 `dist` 目录。
 
 ## 工作原理
 
