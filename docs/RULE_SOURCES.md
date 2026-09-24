@@ -14,6 +14,12 @@
 - `ijerryhuang/xiaohongshu-auto-operation`
   - https://github.com/ijerryhuang/xiaohongshu-auto-operation/blob/main/references/violation-words.md
   - 用于参考常见风险类别和人工替换方向。
+- `Jiandong7/xiaohongshu-writer`
+  - https://github.com/Jiandong7/xiaohongshu-writer
+  - 运行时读取其公开合规词表。
+- `bethel-mark/travel-xhs-content`
+  - https://github.com/bethel-mark/travel-xhs-content
+  - 运行时读取其公开跨平台与旅游场景词表。
 
 ### 闲鱼
 
