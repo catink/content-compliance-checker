@@ -13,32 +13,35 @@
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">✓</span>
         <div>
-          <h1>三平台违禁词与内容合规检测</h1>
-          <p>小红书 · 闲鱼 · 抖音</p>
+          <h1 data-i18n="brandTitle">三平台违禁词与内容合规检测</h1>
+          <p data-i18n="brandPlatforms">小红书 · 闲鱼 · 抖音</p>
         </div>
       </div>
-      <div class="privacy-pill"><span></span> 纯本地规则 · 无需大模型 · 无需 API</div>
+      <div class="topbar-actions">
+        <div class="privacy-pill"><span class="status-dot"></span><span data-i18n="privacy">纯本地规则 · 无需大模型 · 无需 API</span></div>
+        <button id="language-toggle" class="language-toggle" type="button" aria-label="Switch to English">EN</button>
+      </div>
     </header>
 
     <main class="workspace">
       <section class="input-panel" aria-labelledby="input-title">
         <div class="section-heading">
           <div>
-            <span class="eyebrow">01 · 输入内容</span>
-            <h2 id="input-title">准备发布什么？</h2>
+            <span class="eyebrow" data-i18n="inputEyebrow">01 · 输入内容</span>
+            <h2 id="input-title" data-i18n="inputTitle">准备发布什么？</h2>
           </div>
-          <button class="text-button" id="fill-example" type="button">填入示例</button>
+          <button class="text-button" id="fill-example" type="button" data-i18n="fillExample">填入示例</button>
         </div>
 
-        <label class="field-label" for="title-input">标题</label>
+        <label class="field-label" for="title-input" data-i18n="titleLabel">标题</label>
         <div class="input-wrap">
-          <input id="title-input" type="text" maxlength="120" placeholder="粘贴商品标题、笔记标题或视频标题" />
+          <input id="title-input" type="text" maxlength="120" placeholder="粘贴商品标题、笔记标题或视频标题" data-i18n-placeholder="titlePlaceholder" />
           <span id="title-count">0 / 120</span>
         </div>
 
-        <label class="field-label" for="body-input">正文 / 商品描述 / 口播稿</label>
+        <label class="field-label" for="body-input" data-i18n="bodyLabel">正文 / 商品描述 / 口播稿</label>
         <div class="textarea-wrap">
-          <textarea id="body-input" rows="10" placeholder="粘贴正文、字幕、商品描述、直播话术或评论区引导语……"></textarea>
+          <textarea id="body-input" rows="10" placeholder="粘贴正文、字幕、商品描述、直播话术或评论区引导语……" data-i18n-placeholder="bodyPlaceholder"></textarea>
           <span id="body-count">0 字</span>
         </div>
 
@@ -46,75 +49,75 @@
           <input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" multiple />
           <div class="upload-icon" aria-hidden="true">＋</div>
           <div>
-            <strong>添加图片并识别其中的文字</strong>
-            <p>支持 PNG、JPG、WEBP；可一次选择多张</p>
+            <strong data-i18n="uploadTitle">添加图片并识别其中的文字</strong>
+            <p data-i18n="uploadHelp">支持 PNG、JPG、WEBP；可一次选择多张</p>
           </div>
-          <button type="button" class="secondary-button" id="choose-image">选择图片</button>
+          <button type="button" class="secondary-button" id="choose-image" data-i18n="chooseImage">选择图片</button>
         </div>
         <div id="image-list" class="image-list" aria-live="polite"></div>
         <div id="ocr-box" class="ocr-box hidden">
           <div class="ocr-head">
-            <label class="field-label" for="ocr-text">图片识别文字</label>
-            <span id="ocr-status">可手动校正后再检查</span>
+            <label class="field-label" for="ocr-text" data-i18n="ocrLabel">图片识别文字</label>
+            <span id="ocr-status" data-i18n="ocrReady">可手动校正后再检查</span>
           </div>
-          <textarea id="ocr-text" rows="5" placeholder="图片中的文字会显示在这里，也可以手动粘贴或校正。"></textarea>
+          <textarea id="ocr-text" rows="5" placeholder="图片中的文字会显示在这里，也可以手动粘贴或校正。" data-i18n-placeholder="ocrPlaceholder"></textarea>
         </div>
 
         <fieldset class="platform-picker">
-          <legend>检查平台</legend>
-          <label><input type="checkbox" value="xiaohongshu" checked /><span class="platform-dot xhs"></span>小红书</label>
-          <label><input type="checkbox" value="xianyu" checked /><span class="platform-dot xy"></span>闲鱼</label>
-          <label><input type="checkbox" value="douyin" checked /><span class="platform-dot dy"></span>抖音</label>
+          <legend data-i18n="platformsLegend">检查平台</legend>
+          <label><input type="checkbox" value="xiaohongshu" checked /><span class="platform-dot xhs"></span><span data-i18n="xiaohongshu">小红书</span></label>
+          <label><input type="checkbox" value="xianyu" checked /><span class="platform-dot xy"></span><span data-i18n="xianyu">闲鱼</span></label>
+          <label><input type="checkbox" value="douyin" checked /><span class="platform-dot dy"></span><span data-i18n="douyin">抖音</span></label>
         </fieldset>
 
         <div class="strict-lexicon">
           <div>
-            <strong>最大覆盖严格词库</strong>
-            <p>默认开启：内置许可词库快照，并联网加载已登记的公开 GitHub 词库。任何命中都会进入风险结果。</p>
+            <strong data-i18n="strictTitle">最大覆盖严格词库</strong>
+            <p data-i18n="strictHelp">默认开启：内置许可词库快照，并联网加载已登记的公开 GitHub 词库。任何命中都会进入风险结果。</p>
           </div>
-          <label class="strict-switch"><input id="strict-toggle" type="checkbox" checked />启用</label>
-          <button type="button" class="secondary-button" id="reload-strict">重新加载</button>
-          <span id="strict-status">正在准备公开词库…</span>
+          <label class="strict-switch"><input id="strict-toggle" type="checkbox" checked /><span data-i18n="enabled">启用</span></label>
+          <button type="button" class="secondary-button" id="reload-strict" data-i18n="reload">重新加载</button>
+          <span id="strict-status" data-i18n="preparing">正在准备公开词库…</span>
         </div>
 
         <div class="custom-lexicon">
           <div>
-            <strong>扩展词库（可选）</strong>
-            <p>导入 TXT、CSV 或 TSV；每行一个词。命中项统一标为“需结合语境”，不会自动判定违规。</p>
+            <strong data-i18n="customTitle">扩展词库（可选）</strong>
+            <p data-i18n="customHelp">导入 TXT、CSV 或 TSV；每行一个词。命中项统一标为“需结合语境”，不会自动判定违规。</p>
           </div>
           <input id="lexicon-input" type="file" accept=".txt,.csv,.tsv,text/plain,text/csv" />
-          <button type="button" class="secondary-button" id="choose-lexicon">导入词库</button>
-          <button type="button" class="text-button hidden" id="clear-lexicon">清除</button>
-          <span id="lexicon-status">未导入</span>
+          <button type="button" class="secondary-button" id="choose-lexicon" data-i18n="importLexicon">导入词库</button>
+          <button type="button" class="text-button hidden" id="clear-lexicon" data-i18n="clear">清除</button>
+          <span id="lexicon-status" data-i18n="notImported">未导入</span>
         </div>
 
         <button id="analyze-button" class="primary-button" type="button">
-          <span>开始检查</span><span aria-hidden="true">→</span>
+          <span data-i18n="analyze">开始检查</span><span aria-hidden="true">→</span>
         </button>
-        <p class="input-note"><strong>完全本地运行：</strong>不调用大模型，不需要 API Key。检测结果用于发布前自查，不等同于平台官方审核结论。</p>
+        <p class="input-note"><strong data-i18n="localNoteLead">完全本地运行：</strong><span data-i18n="localNote">不调用大模型，不需要 API Key。检测结果用于发布前自查，不等同于平台官方审核结论。</span></p>
       </section>
 
       <section class="results-panel" aria-labelledby="result-title">
         <div class="section-heading result-heading">
           <div>
-            <span class="eyebrow">02 · 检查结果</span>
-            <h2 id="result-title">三个平台，一眼看清</h2>
+            <span class="eyebrow" data-i18n="resultEyebrow">02 · 检查结果</span>
+            <h2 id="result-title" data-i18n="resultTitle">三个平台，一眼看清</h2>
           </div>
-          <button id="copy-report" class="text-button hidden" type="button">复制报告</button>
+          <button id="copy-report" class="text-button hidden" type="button" data-i18n="copyReport">复制报告</button>
         </div>
 
         <div id="empty-state" class="empty-state">
           <div class="scan-visual" aria-hidden="true"><span></span><span></span><span></span></div>
-          <h3>等待检查</h3>
-          <p>输入标题或正文后开始检查。结果会按平台分别展示，并在原文中标出风险位置。</p>
+          <h3 data-i18n="waiting">等待检查</h3>
+          <p data-i18n="waitingHelp">输入标题或正文后开始检查。结果会按平台分别展示，并在原文中标出风险位置。</p>
         </div>
 
         <div id="results" class="hidden" aria-live="polite">
           <div id="summary-cards" class="summary-cards"></div>
           <div class="legend-row">
-            <span><i class="legend high"></i>高风险</span>
-            <span><i class="legend medium"></i>需修改</span>
-            <span><i class="legend review"></i>需结合语境</span>
+            <span><i class="legend high"></i><span data-i18n="highRisk">高风险</span></span>
+            <span><i class="legend medium"></i><span data-i18n="needsEdit">需修改</span></span>
+            <span><i class="legend review"></i><span data-i18n="needsContext">需结合语境</span></span>
           </div>
           <div id="platform-tabs" class="platform-tabs" role="tablist"></div>
           <article id="platform-detail" class="platform-detail"></article>
@@ -123,12 +126,13 @@
     </main>
 
     <footer>
-      <p>开源本地规则引擎 · 无需大模型与 API · 规则库版本：2026-09 · 关键词命中不自动等于违规</p>
+      <p data-i18n="footer">开源本地规则引擎 · 无需大模型与 API · 规则库版本：2026-09 · 关键词命中不自动等于违规</p>
     </footer>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <script src="./lexicon-snapshot.js"></script>
     <script src="./lexicon-loader.js"></script>
+    <script src="./i18n.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

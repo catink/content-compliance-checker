@@ -52,12 +52,19 @@ button { cursor: pointer; }
 }
 .brand h1 { margin: 0; font-size: 20px; line-height: 1.25; letter-spacing: .01em; }
 .brand p { margin: 2px 0 0; font-size: 13px; color: #9cabb8; letter-spacing: .08em; }
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
 .privacy-pill {
   display: flex; align-items: center; gap: 8px;
   padding: 7px 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 99px;
   color: #c9d4dc; font-size: 13px;
 }
-.privacy-pill span { width: 7px; height: 7px; border-radius: 50%; background: #5ee1a2; box-shadow: 0 0 0 4px rgba(94,225,162,.12); }
+.privacy-pill .status-dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: #5ee1a2; box-shadow: 0 0 0 4px rgba(94,225,162,.12); }
+.language-toggle {
+  min-width: 42px; height: 34px; padding: 0 10px;
+  border: 1px solid rgba(255,255,255,.24); border-radius: 10px;
+  background: rgba(255,255,255,.06); color: white; font-size: 13px; font-weight: 800;
+}
+.language-toggle:hover { background: rgba(255,255,255,.13); }
 
 .workspace {
   width: min(1480px, calc(100% - 40px));
@@ -198,7 +205,9 @@ footer { padding: 0 20px 30px; text-align: center; color: #7b8791; font-size: 12
   .results-panel { position: static; min-height: 580px; }
 }
 @media (max-width: 620px) {
-  .topbar { height: auto; min-height: 76px; padding: 13px 16px; }.privacy-pill { display: none; }
+  .topbar { height: auto; min-height: 76px; padding: 13px 16px; }
+  .privacy-pill { display: none; }
+  .brand h1 { font-size: 17px; }
   .workspace { width: calc(100% - 20px); margin: 12px auto; gap: 12px; }
   .input-panel, .results-panel { padding: 18px; border-radius: 15px; }
   .upload-card { grid-template-columns: auto 1fr; }.upload-card .secondary-button { grid-column: 1 / -1; }
