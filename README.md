@@ -1,5 +1,7 @@
 # 小红书、闲鱼、抖音违禁词与内容合规检测工具
 
+**简体中文** | [English](README_EN.md)
+
 一个无需大模型、无需 API Key、无需安装的网页工具，用于在发布前检查小红书、闲鱼和抖音标题、正文、商品描述、口播稿及图片文字中的常见合规风险。
 
 ## 普通用户：直接打开即可使用
@@ -178,6 +180,7 @@ content-compliance-checker/
 ├── tools/
 │   └── build_lexicon_snapshot.mjs # 更新许可词库快照
 ├── LICENSE
+├── README_EN.md    # English project documentation
 └── README.md
 ```
 
