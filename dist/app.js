@@ -39,6 +39,75 @@ const PLATFORM_RULES = {
   ]
 };
 
+const COMBINATION_RULES = [
+  {
+    category: "学术代做与接单组合",
+    severity: "high",
+    platforms: ["xiaohongshu", "xianyu", "douyin"],
+    groups: [
+      ["接单", "承接", "代做", "代写", "帮做", "包做", "有偿做", "定制完成", "全程完成", "替你做", "帮你做"],
+      ["毕业设计", "毕设", "毕业论文", "学位论文", "课程设计", "课程作业", "大作业", "开题报告", "实验报告", "答辩PPT", "答辩稿"]
+    ],
+    reason: "同时出现承接/代做意图和毕业设计、论文、作业等学术成果，属于明显的学术代做或交易服务信号。",
+    suggestion: "删除接单、代做、包做等服务承诺；如提供合规辅导，只能描述知识讲解、方法指导和公开资料，不替用户完成应由本人完成的成果。"
+  },
+  {
+    category: "考试答案与包过组合",
+    severity: "high",
+    platforms: ["xiaohongshu", "xianyu", "douyin"],
+    groups: [
+      ["包过", "稳过", "保过", "押题", "答案", "真题答案", "代考", "替考"],
+      ["考试", "考证", "公考", "考研", "四六级", "软考", "教资", "雅思", "托福"]
+    ],
+    reason: "考试或证书场景与答案、代考、包过等结果承诺组合出现，存在作弊或虚假承诺风险。",
+    suggestion: "删除答案、代考和结果保证；只保留正规课程介绍、知识点讲解和学习计划。"
+  },
+  {
+    category: "网课/教辅/电子资源与侵权交付组合",
+    severity: "high",
+    platforms: ["xianyu"],
+    groups: [
+      ["网课", "课程", "教材", "教辅", "题库", "讲义", "电子书", "试卷"],
+      ["资源", "全集", "合集", "PDF", "电子版", "扫描版", "音频", "视频", "网盘", "秒发"]
+    ],
+    reason: "闲鱼项目实际不会单独因“资源”或“合集”判违规，而是检查其是否与课程、教材、题库等版权对象组合出现。",
+    suggestion: "只发布拥有版权或明确授权的内容；写明来源、授权范围和实际交付形式，删除未授权的全集、扫描版、网盘秒发等表述。"
+  },
+  {
+    category: "大厂求职资料与内推组合",
+    severity: "high",
+    platforms: ["xianyu"],
+    groups: [
+      ["大厂", "互联网大厂", "名企", "校招", "社招", "大模型", "LLM", "AI"],
+      ["面试题", "面经", "面试资料", "内推", "求职", "简历优化", "offer"]
+    ],
+    reason: "按闲鱼源项目的组合规则，大厂/AI 场景与面试题、面经、内推或求职服务同时出现时属高风险。",
+    suggestion: "删除付费内推、保面试、内部题库等承诺；可改为公开来源的求职经验和学习笔记。"
+  },
+  {
+    category: "竞赛代做或获奖承诺组合",
+    severity: "high",
+    platforms: ["xianyu", "xiaohongshu", "douyin"],
+    groups: [
+      ["创青春", "大创赛", "大创", "挑战杯", "互联网+", "竞赛", "比赛", "国赛", "省赛"],
+      ["代做", "代写", "代参赛", "加绩点", "包拿奖", "保拿奖", "包获奖", "保获奖", "代拿奖"]
+    ],
+    reason: "竞赛场景与代做、代参赛或获奖保证绑定，涉及不当代办和虚假承诺。",
+    suggestion: "只保留规则解读、公开案例和方法辅导，删除代做、代参赛和获奖保证。"
+  },
+  {
+    category: "自动化刷量/托管组合",
+    severity: "high",
+    platforms: ["xianyu", "xiaohongshu", "douyin"],
+    groups: [
+      ["批量", "自动", "全自动", "无人值守", "托管", "脚本"],
+      ["涨粉", "粉丝", "流量", "排行", "拉新", "投票", "点赞", "播放", "互动", "推广", "混剪"]
+    ],
+    reason: "按闲鱼源项目的用法，“批量/自动”本身不直接判违规，与涨粉、刷量、拉新、托管等目的结合才是风险锚点。",
+    suggestion: "删除刷量、无人值守和规避平台机制的功能承诺；只描述合法、授权的单用户辅助功能。"
+  }
+];
+
 function rule(category, severity, terms, reason, suggestion) { return { category, severity, terms, reason, suggestion }; }
 
 const els = {
@@ -174,42 +243,135 @@ function analyzePlatform(platform, text) {
     const found = [...new Set(r.terms.filter(term => includesTerm(text, term)))];
     if (found.length) hits.push({ ...r, found });
   });
+  COMBINATION_RULES
+    .filter(ruleItem => ruleItem.platforms.includes(platform))
+    .forEach(ruleItem => {
+      const matchesByGroup = ruleItem.groups.map(group => group.filter(term => includesTerm(text, term)));
+      if (matchesByGroup.every(group => group.length)) {
+        hits.push({
+          category: ruleItem.category,
+          severity: ruleItem.severity,
+          reason: ruleItem.reason,
+          suggestion: ruleItem.suggestion,
+          found: [...new Set(matchesByGroup.flat())]
+        });
+      }
+    });
   const claimed = new Set(hits.flatMap(hit => hit.found.map(term => term.toLocaleLowerCase("zh-CN"))));
   if (els.strictToggle.checked) {
     strictLexiconSources
       .filter(source => source.scope === "common" || source.scope === platform)
       .forEach(source => {
-        const found = [];
+        const found = []; const sourceRanges = [];
+        const segmented = source.matchMode === "segment" ? segmentWords(text) : null;
         for (const term of source.terms) {
           const key = term.toLocaleLowerCase("zh-CN");
-          if (!claimed.has(key) && includesTerm(text, term)) { claimed.add(key); found.push(term); }
+          if (claimed.has(key) || !sourceTermMatches(text, term, source, segmented)) continue;
+          claimed.add(key); found.push(term);
+          sourceRanges.push(...literalRanges(text, term));
         }
         if (found.length) {
+          const weakOnly = found.every(term => isWeakSourceTerm(term, source));
           hits.push({
             category: `严格词库 · ${source.name}`,
-            severity: "medium",
-            reason: `命中公开词库候选项。来源：${source.name}；许可证：${source.license || "未声明"}。严格模式下按风险处理。`,
+            severity: weakOnly ? "review" : "medium",
+            reason: `按该项目自身的词表范围和匹配方式命中。来源：${source.name}；许可证：${source.license || "未声明"}。${weakOnly ? "源项目将单字或极短词作为弱匹配，需结合语境。" : "严格模式下按风险处理。"}`,
             suggestion: "结合发布语境人工修改或删除；若确认是误报，可临时关闭严格词库后重新检查。",
-            found
+            found,
+            _ranges: sourceRanges
+          });
+        }
+        for (const patternRule of source.patterns || []) {
+          if (!patternApplies(patternRule, platform)) continue;
+          const matchResult = regexMatches(text, patternRule.pattern);
+          if (!matchResult.matches.length) continue;
+          hits.push({
+            category: `源项目正则 · ${patternRule.label || source.name}`,
+            severity: patternRule.severity || "medium",
+            reason: patternRule.reason || `按 ${source.name} 的实际正则表达式命中，不是简单字符串词表匹配。`,
+            suggestion: patternRule.suggestion || "核对语境和可证明性，删除或改成客观、有边界的表述。",
+            found: [...new Set(matchResult.matches.map(item => item.text))],
+            _ranges: matchResult.matches
           });
         }
       });
   }
   const ranges = [];
   hits.forEach((hit, issueIndex) => hit.found.forEach(term => {
+    if (hit._ranges) return;
     let start = 0;
     while ((start = text.toLowerCase().indexOf(term.toLowerCase(), start)) !== -1) {
       ranges.push({ start, end: start + term.length, severity: hit.severity, issueIndex, term }); start += term.length;
     }
   }));
+  hits.forEach((hit, issueIndex) => (hit._ranges || []).forEach(item => ranges.push({ ...item, severity: hit.severity, issueIndex, term: item.text || item.term || "" })));
   return { platform, text, hits, ranges, passed: hits.length === 0 };
 }
 
 function includesTerm(text, term) {
-  const lower = text.toLowerCase(); const target = term.toLowerCase();
+  const lower = normalizeBasic(text); const target = normalizeBasic(term);
   if (target === "最" || target === "第一") return lower.includes(target);
   if (target.length <= 2 && /^[a-z]+$/i.test(target)) return new RegExp(`(^|[^a-z])${escapeRegExp(target)}([^a-z]|$)`, "i").test(text);
   return lower.includes(target);
+}
+
+function normalizeBasic(value) {
+  return String(value || "").normalize("NFKC").toLocaleLowerCase("zh-CN").replace(/[\u200b-\u200d\ufeff]/g, "");
+}
+
+function sourceTermMatches(text, term, source, segmented) {
+  const meta = source.termMeta && source.termMeta[term.toLocaleLowerCase("zh-CN")];
+  if (source.matchMode === "segment") return segmented.has(normalizeBasic(term));
+  if (source.matchMode === "goofish" && meta) {
+    const compact = normalizeBasic(text).replace(/\s+/g, "");
+    const target = normalizeBasic(meta.normalized).replace(/\s+/g, "");
+    if (!compact.includes(target)) return false;
+    if (target === "cad" && !["代画", "替画", "包画", "代做", "代写", "替写", "包完成", "代完成", "破解", "破解版", "永久激活", "盗版"].some(item => compact.includes(normalizeBasic(item)))) return false;
+    if (meta.weak && /^[a-z]+$/i.test(target)) {
+      if (target === "v") return /(加\s*v|v\s*(信|x|我|:|：)|\bv\b)/i.test(text);
+      return new RegExp(`(^|[^a-z0-9])${escapeRegExp(target)}([^a-z0-9]|$)`, "i").test(text);
+    }
+    return true;
+  }
+  return includesTerm(text, term);
+}
+
+function isWeakSourceTerm(term, source) {
+  const meta = source.termMeta && source.termMeta[term.toLocaleLowerCase("zh-CN")];
+  return Boolean((meta && meta.weak) || (source.name.includes("WolfeOvO") && term.length <= 1));
+}
+
+function segmentWords(text) {
+  if (typeof Intl !== "undefined" && Intl.Segmenter) {
+    return new Set([...new Intl.Segmenter("zh-CN", { granularity: "word" }).segment(text)].filter(item => item.isWordLike).map(item => normalizeBasic(item.segment)));
+  }
+  return new Set(normalizeBasic(text).split(/[^\p{L}\p{N}]+/u).filter(Boolean));
+}
+
+function literalRanges(text, term) {
+  const ranges = [];
+  const lower = text.toLocaleLowerCase("zh-CN"); const target = term.toLocaleLowerCase("zh-CN");
+  let start = 0;
+  while (target && (start = lower.indexOf(target, start)) !== -1) { ranges.push({ start, end: start + term.length, text: text.slice(start, start + term.length) }); start += Math.max(1, term.length); }
+  return ranges;
+}
+
+function patternApplies(ruleItem, platform) {
+  const platforms = ruleItem.platforms || ["all"];
+  return platforms.includes("all") || platforms.includes(platform);
+}
+
+function regexMatches(text, source) {
+  const matches = [];
+  try {
+    const regex = new RegExp(source, "giu");
+    for (const match of text.matchAll(regex)) {
+      if (!match[0]) continue;
+      matches.push({ start: match.index, end: match.index + match[0].length, text: match[0] });
+      if (matches.length >= 100) break;
+    }
+  } catch (_) { /* invalid upstream pattern is ignored, loader reports only usable rules */ }
+  return { matches };
 }
 
 function renderReport() {
@@ -274,7 +436,7 @@ async function loadStrictLexicons() {
     });
     strictLexiconSources = strictLexiconSummary.sources;
     const failed = strictLexiconSummary.failures.length;
-    els.strictStatus.textContent = `已加载 ${strictLexiconSummary.uniqueSourceCount} 个来源、${strictLexiconSummary.uniqueTerms.toLocaleString()} 个去重词条${failed ? `；${failed} 个远程来源暂时失败` : ""}`;
+    els.strictStatus.textContent = `已加载 ${strictLexiconSummary.uniqueSourceCount} 个来源组、${strictLexiconSummary.uniqueTerms.toLocaleString()} 个去重词条、${strictLexiconSummary.patternCount.toLocaleString()} 条正则${failed ? `；${failed} 个远程来源暂时失败` : ""}`;
   } catch (error) {
     els.strictStatus.textContent = "远程加载失败，继续使用已打包的许可词库快照";
     strictLexiconSources = Array.isArray(window.BUNDLED_LEXICON_SOURCES) ? window.BUNDLED_LEXICON_SOURCES : [];
