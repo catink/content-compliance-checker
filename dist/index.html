@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="在发布前检查小红书、闲鱼和抖音文案中的合规风险，并获得原文高亮和修改建议。" />
+    <title>发布前合规检查台</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230d1b2a'/%3E%3Cpath d='M18 32l9 9 19-20' fill='none' stroke='%235ee1a2' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">✓</span>
+        <div>
+          <h1>发布前合规检查台</h1>
+          <p>小红书 · 闲鱼 · 抖音</p>
+        </div>
+      </div>
+      <div class="privacy-pill"><span></span> 纯本地规则 · 无需大模型 · 无需 API</div>
+    </header>
+
+    <main class="workspace">
+      <section class="input-panel" aria-labelledby="input-title">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">01 · 输入内容</span>
+            <h2 id="input-title">准备发布什么？</h2>
+          </div>
+          <button class="text-button" id="fill-example" type="button">填入示例</button>
+        </div>
+
+        <label class="field-label" for="title-input">标题</label>
+        <div class="input-wrap">
+          <input id="title-input" type="text" maxlength="120" placeholder="粘贴商品标题、笔记标题或视频标题" />
+          <span id="title-count">0 / 120</span>
+        </div>
+
+        <label class="field-label" for="body-input">正文 / 商品描述 / 口播稿</label>
+        <div class="textarea-wrap">
+          <textarea id="body-input" rows="10" placeholder="粘贴正文、字幕、商品描述、直播话术或评论区引导语……"></textarea>
+          <span id="body-count">0 字</span>
+        </div>
+
+        <div class="upload-card" id="drop-zone">
+          <input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" multiple />
+          <div class="upload-icon" aria-hidden="true">＋</div>
+          <div>
+            <strong>添加图片并识别其中的文字</strong>
+            <p>支持 PNG、JPG、WEBP；可一次选择多张</p>
+          </div>
+          <button type="button" class="secondary-button" id="choose-image">选择图片</button>
+        </div>
+        <div id="image-list" class="image-list" aria-live="polite"></div>
+        <div id="ocr-box" class="ocr-box hidden">
+          <div class="ocr-head">
+            <label class="field-label" for="ocr-text">图片识别文字</label>
+            <span id="ocr-status">可手动校正后再检查</span>
+          </div>
+          <textarea id="ocr-text" rows="5" placeholder="图片中的文字会显示在这里，也可以手动粘贴或校正。"></textarea>
+        </div>
+
+        <fieldset class="platform-picker">
+          <legend>检查平台</legend>
+          <label><input type="checkbox" value="xiaohongshu" checked /><span class="platform-dot xhs"></span>小红书</label>
+          <label><input type="checkbox" value="xianyu" checked /><span class="platform-dot xy"></span>闲鱼</label>
+          <label><input type="checkbox" value="douyin" checked /><span class="platform-dot dy"></span>抖音</label>
+        </fieldset>
+
+        <div class="strict-lexicon">
+          <div>
+            <strong>最大覆盖严格词库</strong>
+            <p>默认开启：内置许可词库快照，并联网加载已登记的公开 GitHub 词库。任何命中都会进入风险结果。</p>
+          </div>
+          <label class="strict-switch"><input id="strict-toggle" type="checkbox" checked />启用</label>
+          <button type="button" class="secondary-button" id="reload-strict">重新加载</button>
+          <span id="strict-status">正在准备公开词库…</span>
+        </div>
+
+        <div class="custom-lexicon">
+          <div>
+            <strong>扩展词库（可选）</strong>
+            <p>导入 TXT、CSV 或 TSV；每行一个词。命中项统一标为“需结合语境”，不会自动判定违规。</p>
+          </div>
+          <input id="lexicon-input" type="file" accept=".txt,.csv,.tsv,text/plain,text/csv" />
+          <button type="button" class="secondary-button" id="choose-lexicon">导入词库</button>
+          <button type="button" class="text-button hidden" id="clear-lexicon">清除</button>
+          <span id="lexicon-status">未导入</span>
+        </div>
+
+        <button id="analyze-button" class="primary-button" type="button">
+          <span>开始检查</span><span aria-hidden="true">→</span>
+        </button>
+        <p class="input-note"><strong>完全本地运行：</strong>不调用大模型，不需要 API Key。检测结果用于发布前自查，不等同于平台官方审核结论。</p>
+      </section>
+
+      <section class="results-panel" aria-labelledby="result-title">
+        <div class="section-heading result-heading">
+          <div>
+            <span class="eyebrow">02 · 检查结果</span>
+            <h2 id="result-title">三个平台，一眼看清</h2>
+          </div>
+          <button id="copy-report" class="text-button hidden" type="button">复制报告</button>
+        </div>
+
+        <div id="empty-state" class="empty-state">
+          <div class="scan-visual" aria-hidden="true"><span></span><span></span><span></span></div>
+          <h3>等待检查</h3>
+          <p>输入标题或正文后开始检查。结果会按平台分别展示，并在原文中标出风险位置。</p>
+        </div>
+
+        <div id="results" class="hidden" aria-live="polite">
+          <div id="summary-cards" class="summary-cards"></div>
+          <div class="legend-row">
+            <span><i class="legend high"></i>高风险</span>
+            <span><i class="legend medium"></i>需修改</span>
+            <span><i class="legend review"></i>需结合语境</span>
+          </div>
+          <div id="platform-tabs" class="platform-tabs" role="tablist"></div>
+          <article id="platform-detail" class="platform-detail"></article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>开源本地规则引擎 · 无需大模型与 API · 规则库版本：2026-09 · 关键词命中不自动等于违规</p>
+    </footer>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="./lexicon-snapshot.js"></script>
+    <script src="./lexicon-loader.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

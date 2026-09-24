@@ -1,0 +1,287 @@
+const PLATFORM_META = {
+  xiaohongshu: { name: "小红书", note: "重点检查绝对化宣传、医疗美容功效、收益承诺、站外导流、假货灰产与诱导互动。" },
+  xianyu: { name: "闲鱼", note: "重点检查站外交易、虚拟资源交付、侵权盗版、学术代做、灰产工具与禁止交易品类。" },
+  douyin: { name: "抖音", note: "重点检查违法不良内容、虚假夸大、危险行为、隐私侵权、站外导流、版权与商业宣传。" }
+};
+
+const COMMON_RULES = [
+  rule("绝对化宣传", "high", ["国家级","最高级","最佳","最好","最强","第一品牌","全国第一","全网第一","销量第一","唯一","独一无二","顶级","极致","完美","百分百","100%有效","永久有效","万能","无敌","全网最低价","史上最低价","全球首发","绝无仅有"], "绝对化或无法证明的排名、效果承诺容易构成误导。", "删除绝对化结论，改为可核验的参数、适用条件或真实体验。"),
+  rule("医疗与功效宣称", "high", ["治疗","治愈","根治","药到病除","无副作用","抗癌","防癌","降血压","降血糖","降血脂","增强免疫力","提高免疫力","排毒","祛疤","生发","一天见效","立竿见影","返老还童","疗效"], "涉及疾病治疗、预防或确定性身体功效，普通商品和非专业内容风险很高。", "删除诊疗承诺；只描述客观成分、使用感受，并注明个体差异，必要时补充资质。"),
+  rule("收益与赚钱承诺", "high", ["稳赚不赔","保本稳赚","保证收益","固定回报","无风险回报","本金翻倍","轻松暴富","躺赚","日入过千","月入过万","零成本创业","无脑赚钱","快速变现","被动收入","稳定收益"], "对收益、回报或赚钱结果作确定性承诺，可能构成虚假或误导宣传。", "改为说明方法、成本和风险，不承诺收入、回报或确定结果。"),
+  rule("违法与灰产", "high", ["高仿","精仿","1:1复刻","破解版","破解插件","外挂","刷粉","刷赞","刷评论","刷单","好评返现","套现","假证","代考","代写论文","买卖账号","洗钱","博彩","赌博","黑客接单"], "涉及假冒侵权、作弊、数据造假或违法服务。", "删除相关商品、服务或引导；仅做合法风险科普时要保留清晰语境。"),
+  rule("强保证表达", "medium", ["保证","确保","一定有效","必学会","必过","稳过","一次性搞定","永不反弹","不会复发","零风险","无效退款"], "对效果或结果作无条件保证，缺少适用边界。", "改为“适合……参考”“在……条件下可能……”并写明限制。"),
+];
+
+const PLATFORM_RULES = {
+  xiaohongshu: [
+    rule("站外导流", "high", ["加微信","微信号","加vx","加v","wx","v信","薇信","威信","QQ号","QQ群","扫码联系","二维码联系","联系客服微信","站外成交","平台外交易","私发链接","外部平台","店铺链接","复制口令"], "可能引导用户离开平台联系或交易。", "删除站外联系方式和跳转信息，改为使用平台允许的站内沟通、店铺或商品功能。"),
+    rule("跨平台引导", "medium", ["淘宝搜","闲鱼搜","抖音搜","拼多多搜","京东搜","去别的平台","跳转店铺","主页链接"], "出现跨平台搜索或跳转指令，可能被识别为导流。", "直接在当前内容中提供必要信息，避免要求用户去其他平台搜索。"),
+    rule("医美高风险", "high", ["美白针","童颜针","瘦脸针","水光针","溶脂针","瘦肩针","瘦腿针","除皱针","肉毒素","胎盘素","线雕","注射除皱","超声溶脂"], "医美项目涉及医疗资质、真实功效和安全风险。", "不要用普通种草方式作确定性推荐；补充合规资质、适用范围和风险提示。"),
+    rule("迷信营销", "medium", ["招财进宝","提升运气","逢凶化吉","时来运转","旺财","开光","超度","算命","算八字","占卜","作法","护身符","古曼童"], "将商品或服务与转运、消灾等迷信功效绑定，存在内容风险。", "删除确定性的转运功效；如属文化介绍，明确历史、民俗或审美语境。"),
+    rule("诱导互动", "review", ["评论区扣1","评论区回复","点赞关注","转发抽奖","私信我","评论区领取"], "可能构成机械诱导互动，但需要结合活动规则和内容语境判断。", "改为真实的问题邀请或平台允许的活动表达，不以福利强制换取互动。"),
+  ],
+  xianyu: [
+    rule("站外交易或联系", "high", ["加微信","微信号","VX","vx","wx","QQ","企鹅","手机号","二维码","转账","私下交易","线下沟通","网盘链接","提取码","发链接","百度云","夸克网盘","阿里云盘"], "可能绕开闲鱼沟通、支付或担保交易。", "删除站外联系方式、网盘口令和转账引导，统一使用闲鱼站内沟通与交易流程。"),
+    rule("虚拟资源与直接交付", "high", ["自动发货","秒发","无需物流","虚拟发货","自动交付","自助提取","拍下发全部","下载即用","直接发送文件","直接发文件","发送文件","网盘发送","一次性发完资源"], "可能涉及不受支持的虚拟交付方式或交易风险。", "先确认所属类目是否允许；按平台支持的商品形态、交付和发货方式如实描述。"),
+    rule("侵权资源", "high", ["全套课程","完整版课程","付费课","影视全集","影视剧资源","音乐资源","付费素材","会员资源","网盘合集","内部课","高清资源","无删减","正版破解课","剪辑素材合集"], "可能销售未经授权的课程、影视、软件或素材。", "仅发布拥有版权或明确授权的内容，并在描述中说明授权范围与来源凭证。"),
+    rule("学术与考试代做", "high", ["代做","代写","毕业论文","课程作业","网课代刷","代答","题库答案","考试答案","简历代写","论文润色","公考押题","考证必过"], "可能帮助完成学业、考试或材料造假。", "改为合法的知识讲解、学习方法或公开资料；不得替用户完成应由本人完成的任务。"),
+    rule("工具、账号与自动化", "high", ["Cookie","登录密钥","账号抓取","token","绕过验证","免登录","代登录","账号共享","批量登录","批量抓取","自动脚本","批量发布","自动回复","多开","防封","群发","矩阵工具","注册机"], "可能涉及账号滥用、绕过验证、爬取或破坏平台秩序。", "删除规避平台机制的功能描述；只保留合法、授权且不干扰平台的工具能力。"),
+    rule("需要语境复核", "review", ["论文","作业","教程","评论","采集","自动化工具","ChatGPT","GPT4","AI机器人","第一","最"], "这些词在正常商品或教学语境中不必然违规，不能单独判定。", "结合商品实际内容复核；避免与代做、破解、刷量、保证结果等高风险表达组合。"),
+  ],
+  douyin: [
+    rule("站外导流", "high", ["加微信","微信号","VX","wx","QQ号","扫码联系","二维码联系","站外购买","平台外交易","私下转账","私发链接","外链下单"], "可能引导用户脱离平台联系或交易。", "使用抖音允许的私信、企业号、商品卡、团购或店铺功能，不展示站外联系方式。"),
+    rule("危险行为", "high", ["请勿模仿","极限挑战","危险驾驶","飙车","自制炸药","开锁教程","翻越护栏","高空挑战","吞火","自残教程"], "画面或口播可能展示可模仿的危险行为；仅加警示语不能自动消除风险。", "删去危险过程和可复制步骤；如属安全科普，突出防护环境、专业资质和风险教育。"),
+    rule("隐私与人肉", "high", ["人肉搜索","曝光手机号","曝光住址","身份证照片","家庭住址","实时定位","开房记录","聊天记录曝光","病历曝光","账号密码"], "可能泄露、买卖或鼓励曝光他人个人信息。", "删除或充分打码可识别信息，并确认授权、公共利益和必要性。"),
+    rule("低俗或违法引导", "high", ["裸聊","约炮","援交","情色服务","毒品购买","赌博群","下注链接","枪支出售","假证办理","传销项目"], "涉及色情、赌博、毒品、武器、诈骗或其他违法服务。", "删除相关内容和联系方式；合法新闻或科普需避免引流及可操作细节。"),
+    rule("时事与不实信息", "review", ["内部消息","官方没说的真相","全网封锁","马上要出政策","震惊全国","紧急扩散","未经证实","据说"], "涉及公共事件或政策时，容易形成无来源、过期或夸张信息。", "补充权威来源、发生时间和地点；无法核实的结论不要发布。"),
+    rule("版权与搬运", "medium", ["影视剪辑全集","无授权搬运","去水印搬运","原片下载","盗版音乐","全集资源","未删减资源"], "可能侵犯影视、音乐、图片或他人原创内容权利。", "使用自有或获得授权的素材，保留许可证据；标注来源不等于获得授权。"),
+    rule("AI与演绎标识", "review", ["AI生成","数字人","AI换脸","虚构演绎","情景演绎","AI配音","合成画面"], "相关内容可能需要按实际情况作显著标识，但这些词本身并非违规。", "保留真实、清晰的AI生成或虚构演绎标识，不要冒充真实人物或事件。"),
+  ]
+};
+
+function rule(category, severity, terms, reason, suggestion) { return { category, severity, terms, reason, suggestion }; }
+
+const els = {
+  title: document.querySelector("#title-input"), body: document.querySelector("#body-input"), ocr: document.querySelector("#ocr-text"),
+  titleCount: document.querySelector("#title-count"), bodyCount: document.querySelector("#body-count"), imageInput: document.querySelector("#image-input"),
+  imageList: document.querySelector("#image-list"), ocrBox: document.querySelector("#ocr-box"), ocrStatus: document.querySelector("#ocr-status"),
+  analyze: document.querySelector("#analyze-button"), empty: document.querySelector("#empty-state"), results: document.querySelector("#results"),
+  summaries: document.querySelector("#summary-cards"), tabs: document.querySelector("#platform-tabs"), detail: document.querySelector("#platform-detail"),
+  copy: document.querySelector("#copy-report"), toast: document.querySelector("#toast"), dropZone: document.querySelector("#drop-zone"),
+  lexiconInput: document.querySelector("#lexicon-input"), lexiconStatus: document.querySelector("#lexicon-status"), clearLexicon: document.querySelector("#clear-lexicon"),
+  strictToggle: document.querySelector("#strict-toggle"), strictStatus: document.querySelector("#strict-status"), reloadStrict: document.querySelector("#reload-strict")
+};
+
+let images = [];
+let report = null;
+let activePlatform = "xiaohongshu";
+let customTerms = [];
+let strictLexiconSources = [];
+let strictLexiconSummary = null;
+let strictLoadPromise = null;
+
+els.title.addEventListener("input", updateCounts);
+els.body.addEventListener("input", updateCounts);
+document.querySelector("#choose-image").addEventListener("click", () => els.imageInput.click());
+els.imageInput.addEventListener("change", e => handleFiles([...e.target.files]));
+els.dropZone.addEventListener("dragover", e => { e.preventDefault(); els.dropZone.classList.add("dragging"); });
+els.dropZone.addEventListener("dragleave", () => els.dropZone.classList.remove("dragging"));
+els.dropZone.addEventListener("drop", e => { e.preventDefault(); els.dropZone.classList.remove("dragging"); handleFiles([...e.dataTransfer.files]); });
+els.analyze.addEventListener("click", analyzeAll);
+els.copy.addEventListener("click", copyReport);
+document.querySelector("#choose-lexicon").addEventListener("click", () => els.lexiconInput.click());
+els.lexiconInput.addEventListener("change", event => importLexicon(event.target.files[0]));
+els.clearLexicon.addEventListener("click", () => {
+  customTerms = []; els.lexiconInput.value = ""; els.lexiconStatus.textContent = "未导入"; els.clearLexicon.classList.add("hidden");
+  showToast("扩展词库已清除");
+});
+els.reloadStrict.addEventListener("click", () => { strictLoadPromise = loadStrictLexicons(); });
+document.querySelector("#fill-example").addEventListener("click", () => {
+  els.title.value = "全网第一的AI赚钱课程，保证月入过万";
+  els.body.value = "完整版付费课资源，拍下秒发，无需物流。添加微信领取网盘链接，零基础也能百分百学会。";
+  updateCounts();
+});
+
+function updateCounts() {
+  els.titleCount.textContent = `${els.title.value.length} / 120`;
+  els.bodyCount.textContent = `${els.body.value.length} 字`;
+}
+
+async function importLexicon(file) {
+  if (!file) return;
+  try {
+    const raw = await file.text();
+    const parsed = raw
+      .split(/[\r\n,\t，、;；]+/)
+      .map(term => term.trim())
+      .filter(term => term && !term.startsWith("#") && term.length <= 80);
+    customTerms = [...new Set(parsed)].slice(0, 50000);
+    els.lexiconStatus.textContent = customTerms.length ? `已导入 ${customTerms.length.toLocaleString()} 个去重词条：${file.name}` : "文件中没有可用词条";
+    els.clearLexicon.classList.toggle("hidden", customTerms.length === 0);
+    showToast(customTerms.length ? `已导入 ${customTerms.length.toLocaleString()} 个词条` : "没有识别到可用词条");
+  } catch (error) {
+    customTerms = []; els.lexiconStatus.textContent = "读取失败，请检查文件编码和格式"; els.clearLexicon.classList.add("hidden");
+  }
+}
+
+function handleFiles(files) {
+  const accepted = files.filter(f => /^image\/(png|jpeg|webp)$/.test(f.type));
+  if (!accepted.length) return showToast("请选择 PNG、JPG 或 WEBP 图片");
+  accepted.slice(0, Math.max(0, 6 - images.length)).forEach(file => images.push({ file, url: URL.createObjectURL(file), text: "", status: "等待识别" }));
+  els.ocrBox.classList.remove("hidden");
+  renderImages();
+  recognizeImages();
+}
+
+function renderImages() {
+  els.imageList.innerHTML = images.map((item, i) => `<div class="image-chip"><img src="${item.url}" alt="待检查图片 ${i + 1}"><button type="button" data-remove="${i}" aria-label="移除图片">×</button><span>${escapeHtml(item.status)}</span></div>`).join("");
+  els.imageList.querySelectorAll("[data-remove]").forEach(btn => btn.addEventListener("click", () => {
+    const index = Number(btn.dataset.remove); URL.revokeObjectURL(images[index].url); images.splice(index, 1); renderImages();
+    if (!images.length) els.ocrBox.classList.add("hidden");
+  }));
+}
+
+async function recognizeImages() {
+  const waiting = images.filter(x => x.status === "等待识别");
+  if (!waiting.length) return;
+  els.ocrStatus.textContent = "正在加载本地文字识别组件…";
+  try {
+    await ensureTesseract();
+    for (const item of waiting) {
+      item.status = "识别中"; renderImages();
+      const result = await window.Tesseract.recognize(item.file, "chi_sim+eng", {
+        logger: m => { if (m.status === "recognizing text") els.ocrStatus.textContent = `正在识别图片文字 ${Math.round((m.progress || 0) * 100)}%`; }
+      });
+      item.text = (result.data.text || "").trim(); item.status = item.text ? "已识别" : "未识别到文字"; renderImages();
+      els.ocr.value = images.map((x, i) => x.text ? `【图片${i + 1}】\n${x.text}` : "").filter(Boolean).join("\n\n");
+    }
+    els.ocrStatus.textContent = "识别完成，可手动校正";
+  } catch (error) {
+    waiting.forEach(item => item.status = "识别失败"); renderImages();
+    els.ocrStatus.textContent = "自动识别失败，可手动粘贴图片文字";
+    showToast("图片识别暂不可用，可在识别框中手动输入文字");
+  }
+}
+
+function ensureTesseract() {
+  if (window.Tesseract) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+    script.onload = resolve; script.onerror = reject; document.head.appendChild(script);
+  });
+}
+
+async function analyzeAll() {
+  if (els.strictToggle.checked && strictLoadPromise) await strictLoadPromise;
+  const selected = [...document.querySelectorAll('.platform-picker input:checked')].map(x => x.value);
+  const sections = [els.title.value.trim(), els.body.value.trim(), els.ocr.value.trim()].filter(Boolean);
+  if (!sections.length) return showToast("请先输入标题、正文或图片文字");
+  if (!selected.length) return showToast("请至少选择一个平台");
+  const fullText = sections.join("\n\n");
+  report = Object.fromEntries(selected.map(platform => [platform, analyzePlatform(platform, fullText)]));
+  activePlatform = selected.includes(activePlatform) ? activePlatform : selected[0];
+  renderReport();
+}
+
+function analyzePlatform(platform, text) {
+  const hits = [];
+  const rules = [...COMMON_RULES, ...PLATFORM_RULES[platform]];
+  if (customTerms.length) {
+    rules.push(rule("扩展词库命中", "review", customTerms, "命中用户导入的候选词库；来源和适用平台由词库提供者决定，不能仅凭命中认定违规。", "结合词库来源和上下文人工复核；若属于正常表达，可保留或从扩展词库中移除。"));
+  }
+  rules.forEach(r => {
+    const found = [...new Set(r.terms.filter(term => includesTerm(text, term)))];
+    if (found.length) hits.push({ ...r, found });
+  });
+  const claimed = new Set(hits.flatMap(hit => hit.found.map(term => term.toLocaleLowerCase("zh-CN"))));
+  if (els.strictToggle.checked) {
+    strictLexiconSources
+      .filter(source => source.scope === "common" || source.scope === platform)
+      .forEach(source => {
+        const found = [];
+        for (const term of source.terms) {
+          const key = term.toLocaleLowerCase("zh-CN");
+          if (!claimed.has(key) && includesTerm(text, term)) { claimed.add(key); found.push(term); }
+        }
+        if (found.length) {
+          hits.push({
+            category: `严格词库 · ${source.name}`,
+            severity: "medium",
+            reason: `命中公开词库候选项。来源：${source.name}；许可证：${source.license || "未声明"}。严格模式下按风险处理。`,
+            suggestion: "结合发布语境人工修改或删除；若确认是误报，可临时关闭严格词库后重新检查。",
+            found
+          });
+        }
+      });
+  }
+  const ranges = [];
+  hits.forEach((hit, issueIndex) => hit.found.forEach(term => {
+    let start = 0;
+    while ((start = text.toLowerCase().indexOf(term.toLowerCase(), start)) !== -1) {
+      ranges.push({ start, end: start + term.length, severity: hit.severity, issueIndex, term }); start += term.length;
+    }
+  }));
+  return { platform, text, hits, ranges, passed: hits.length === 0 };
+}
+
+function includesTerm(text, term) {
+  const lower = text.toLowerCase(); const target = term.toLowerCase();
+  if (target === "最" || target === "第一") return lower.includes(target);
+  if (target.length <= 2 && /^[a-z]+$/i.test(target)) return new RegExp(`(^|[^a-z])${escapeRegExp(target)}([^a-z]|$)`, "i").test(text);
+  return lower.includes(target);
+}
+
+function renderReport() {
+  els.empty.classList.add("hidden"); els.results.classList.remove("hidden"); els.copy.classList.remove("hidden");
+  els.summaries.innerHTML = Object.values(report).map(r => `<div class="summary-card ${r.passed ? "pass" : "risk"}"><div class="top"><strong>${PLATFORM_META[r.platform].name}</strong><span class="status-icon">${r.passed ? "✓" : "!"}</span></div><p>${r.passed ? "未发现明显风险" : `发现 <b>${r.hits.length}</b> 类风险`}</p></div>`).join("");
+  els.tabs.innerHTML = Object.keys(report).map(platform => `<button class="platform-tab" role="tab" aria-selected="${platform === activePlatform}" data-platform="${platform}">${PLATFORM_META[platform].name}</button>`).join("");
+  els.tabs.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => { activePlatform = btn.dataset.platform; renderReport(); }));
+  renderDetail(report[activePlatform]);
+}
+
+function renderDetail(r) {
+  const meta = PLATFORM_META[r.platform];
+  els.detail.innerHTML = `
+    <div class="detail-status"><div><h3>${r.passed ? "✓ 可以进入人工发布前复核" : "建议修改后再发布"}</h3><p>${meta.note}</p></div><span class="risk-count ${r.passed ? "pass" : ""}">${r.passed ? "未命中" : `${r.hits.length} 类问题`}</span></div>
+    <div class="highlight-box"><div class="box-title"><span>原文风险高亮</span><span>${r.ranges.length} 处命中</span></div><div class="highlighted-text">${highlightText(r.text, r.ranges)}</div></div>
+    <h3 class="issues-title">问题与修改建议</h3>
+    ${r.passed ? `<div class="no-issue"><strong>未发现当前规则库中的明显风险</strong>仍需人工确认事实真实性、素材授权、图片画面和具体类目资质。</div>` : `<div class="issue-list">${r.hits.map(renderIssue).join("")}</div>`}
+    <div class="scope-note">说明：蓝色标记属于“需结合语境复核”，不会被当成必然违规。平台审核还可能结合画面、音轨、账号状态、商品类目、资质和历史行为，本工具不能保证最终审核结果。</div>`;
+}
+
+function renderIssue(hit) {
+  return `<div class="issue-card ${hit.severity}"><div class="issue-bar"></div><div><h4>${escapeHtml(hit.category)} ${hit.found.map(t => `<span class="term-tag">${escapeHtml(t)}</span>`).join("")}</h4><p>${escapeHtml(hit.reason)}</p><p class="suggestion"><strong>怎么改：</strong>${escapeHtml(hit.suggestion)}</p></div></div>`;
+}
+
+function highlightText(text, ranges) {
+  if (!ranges.length) return escapeHtml(text);
+  const priority = { high: 3, medium: 2, review: 1 };
+  const chars = [...text]; const levels = Array(chars.length).fill(null);
+  ranges.forEach(r => { for (let i = r.start; i < r.end; i++) if (!levels[i] || priority[r.severity] > priority[levels[i]]) levels[i] = r.severity; });
+  let out = "", open = null;
+  chars.forEach((char, i) => {
+    if (levels[i] !== open) { if (open) out += "</mark>"; open = levels[i]; if (open) out += `<mark class="${open}">`; }
+    out += escapeHtml(char);
+  });
+  if (open) out += "</mark>";
+  return out;
+}
+
+async function copyReport() {
+  if (!report) return;
+  const text = Object.values(report).map(r => {
+    const head = `【${PLATFORM_META[r.platform].name}】${r.passed ? "✓ 未发现明显风险" : `发现 ${r.hits.length} 类风险`}`;
+    return [head, ...r.hits.map(h => `- ${h.category}：${h.found.join("、")}\n  原因：${h.reason}\n  建议：${h.suggestion}`)].join("\n");
+  }).join("\n\n");
+  await navigator.clipboard.writeText(text); showToast("检查报告已复制");
+}
+
+function showToast(message) { els.toast.textContent = message; els.toast.classList.add("show"); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => els.toast.classList.remove("show"), 2300); }
+function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[c])); }
+function escapeRegExp(value) { return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+async function loadStrictLexicons() {
+  if (!window.PublicLexicons) {
+    els.strictStatus.textContent = "严格词库加载器不可用，当前仅使用内置精选规则";
+    return;
+  }
+  els.reloadStrict.disabled = true;
+  els.strictStatus.textContent = "正在加载公开词库…";
+  try {
+    strictLexiconSummary = await window.PublicLexicons.loadAll((done, total) => {
+      els.strictStatus.textContent = `正在加载公开词库 ${done} / ${total}…`;
+    });
+    strictLexiconSources = strictLexiconSummary.sources;
+    const failed = strictLexiconSummary.failures.length;
+    els.strictStatus.textContent = `已加载 ${strictLexiconSummary.uniqueSourceCount} 个来源、${strictLexiconSummary.uniqueTerms.toLocaleString()} 个去重词条${failed ? `；${failed} 个远程来源暂时失败` : ""}`;
+  } catch (error) {
+    els.strictStatus.textContent = "远程加载失败，继续使用已打包的许可词库快照";
+    strictLexiconSources = Array.isArray(window.BUNDLED_LEXICON_SOURCES) ? window.BUNDLED_LEXICON_SOURCES : [];
+  } finally {
+    els.reloadStrict.disabled = false;
+  }
+}
+
+updateCounts();
+strictLoadPromise = loadStrictLexicons();
