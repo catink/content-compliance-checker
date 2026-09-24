@@ -2,6 +2,8 @@
 
 一个无需大模型、无需 API Key、无需安装依赖的本地网页工具，用于在发布前检查小红书、闲鱼和抖音标题、正文、商品描述、口播稿及图片文字中的常见合规风险。
 
+在线使用：https://catink.github.io/content-compliance-checker/
+
 ## 特点
 
 - 完全基于本地 JavaScript 规则运行，不调用任何大语言模型。
