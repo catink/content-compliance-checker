@@ -1,27 +1,8 @@
 const PLATFORM_META = {
-  xiaohongshu: { zh: "小红书", en: "Xiaohongshu" },
-  xianyu: { zh: "闲鱼", en: "Xianyu" },
-  douyin: { zh: "抖音", en: "Douyin" }
+  xiaohongshu: { name: "小红书", note: "重点检查绝对化宣传、医疗美容功效、收益承诺、站外导流、假货灰产与诱导互动。" },
+  xianyu: { name: "闲鱼", note: "重点检查站外交易、虚拟资源交付、侵权盗版、学术代做、灰产工具与禁止交易品类。" },
+  douyin: { name: "抖音", note: "重点检查违法不良内容、虚假夸大、危险行为、隐私侵权、站外导流、版权与商业宣传。" }
 };
-
-const I18N = window.AppI18n || { ui: { zh: {}, en: {} }, rules: {}, labels: {} };
-let currentLanguage = "zh";
-
-function text(key, values = {}) {
-  let value = (I18N.ui[currentLanguage] && I18N.ui[currentLanguage][key]) || (I18N.ui.zh && I18N.ui.zh[key]) || key;
-  if (typeof value !== "string") return value;
-  return value.replace(/\{(\w+)\}/g, (_, name) => values[name] == null ? `{${name}}` : String(values[name]));
-}
-
-function platformName(platform) { return PLATFORM_META[platform][currentLanguage] || PLATFORM_META[platform].zh; }
-function platformNote(platform) { return text("platformNotes")[platform]; }
-function quantity(key, count) {
-  if (currentLanguage !== "en") return text(key, { count });
-  if (key === "riskClasses") return `${count} risk ${count === 1 ? "category" : "categories"}`;
-  if (key === "issueCount") return `${count} issue ${count === 1 ? "category" : "categories"}`;
-  if (key === "matchCount") return `${count} ${count === 1 ? "match" : "matches"}`;
-  return text(key, { count });
-}
 
 const COMMON_RULES = [
   rule("绝对化宣传", "high", ["国家级","最高级","最佳","最好","最强","第一品牌","全国第一","全网第一","销量第一","唯一","独一无二","顶级","极致","完美","百分百","100%有效","永久有效","万能","无敌","全网最低价","史上最低价","全球首发","绝无仅有"], "绝对化或无法证明的排名、效果承诺容易构成误导。", "删除绝对化结论，改为可核验的参数、适用条件或真实体验。"),
@@ -137,8 +118,7 @@ const els = {
   summaries: document.querySelector("#summary-cards"), tabs: document.querySelector("#platform-tabs"), detail: document.querySelector("#platform-detail"),
   copy: document.querySelector("#copy-report"), toast: document.querySelector("#toast"), dropZone: document.querySelector("#drop-zone"),
   lexiconInput: document.querySelector("#lexicon-input"), lexiconStatus: document.querySelector("#lexicon-status"), clearLexicon: document.querySelector("#clear-lexicon"),
-  strictToggle: document.querySelector("#strict-toggle"), strictStatus: document.querySelector("#strict-status"), reloadStrict: document.querySelector("#reload-strict"),
-  languageToggle: document.querySelector("#language-toggle")
+  strictToggle: document.querySelector("#strict-toggle"), strictStatus: document.querySelector("#strict-status"), reloadStrict: document.querySelector("#reload-strict")
 };
 
 let images = [];
@@ -161,53 +141,19 @@ els.copy.addEventListener("click", copyReport);
 document.querySelector("#choose-lexicon").addEventListener("click", () => els.lexiconInput.click());
 els.lexiconInput.addEventListener("change", event => importLexicon(event.target.files[0]));
 els.clearLexicon.addEventListener("click", () => {
-  customTerms = []; els.lexiconInput.value = ""; els.lexiconStatus.textContent = text("notImported"); els.clearLexicon.classList.add("hidden");
-  showToast(text("lexiconCleared"));
+  customTerms = []; els.lexiconInput.value = ""; els.lexiconStatus.textContent = "未导入"; els.clearLexicon.classList.add("hidden");
+  showToast("扩展词库已清除");
 });
 els.reloadStrict.addEventListener("click", () => { strictLoadPromise = loadStrictLexicons(); });
-els.languageToggle.addEventListener("click", () => setLanguage(currentLanguage === "zh" ? "en" : "zh"));
 document.querySelector("#fill-example").addEventListener("click", () => {
   els.title.value = "全网第一的AI赚钱课程，保证月入过万";
   els.body.value = "完整版付费课资源，拍下秒发，无需物流。添加微信领取网盘链接，零基础也能百分百学会。";
   updateCounts();
 });
 
-function setLanguage(language) {
-  currentLanguage = language === "en" ? "en" : "zh";
-  document.documentElement.lang = currentLanguage === "en" ? "en" : "zh-CN";
-  document.title = text("documentTitle");
-  const meta = document.querySelector('meta[name="description"]');
-  if (meta) meta.setAttribute("content", text("description"));
-  document.querySelectorAll("[data-i18n]").forEach(element => {
-    const value = text(element.dataset.i18n);
-    if (typeof value === "string") element.textContent = value;
-  });
-  document.querySelectorAll("[data-i18n-placeholder]").forEach(element => {
-    element.setAttribute("placeholder", text(element.dataset.i18nPlaceholder));
-  });
-  els.languageToggle.textContent = currentLanguage === "zh" ? "EN" : "中";
-  els.languageToggle.setAttribute("aria-label", currentLanguage === "zh" ? "Switch to English" : "切换到中文");
-  if (!customTerms.length) els.lexiconStatus.textContent = text("notImported");
-  updateCounts();
-  renderImages();
-  renderStrictStatus();
-  if (report) renderReport();
-}
-
-function renderStrictStatus() {
-  if (!strictLexiconSummary) return;
-  const failed = strictLexiconSummary.failures.length;
-  els.strictStatus.textContent = text("loadedLexicons", {
-    sources: strictLexiconSummary.uniqueSourceCount,
-    terms: strictLexiconSummary.uniqueTerms.toLocaleString(currentLanguage === "en" ? "en-US" : "zh-CN"),
-    patterns: strictLexiconSummary.patternCount.toLocaleString(currentLanguage === "en" ? "en-US" : "zh-CN"),
-    failures: failed ? text("failedSources", { count: failed }) : ""
-  });
-}
-
 function updateCounts() {
   els.titleCount.textContent = `${els.title.value.length} / 120`;
-  els.bodyCount.textContent = currentLanguage === "en" ? `${els.body.value.length} characters` : `${els.body.value.length} 字`;
+  els.bodyCount.textContent = `${els.body.value.length} 字`;
 }
 
 async function importLexicon(file) {
@@ -219,25 +165,25 @@ async function importLexicon(file) {
       .map(term => term.trim())
       .filter(term => term && !term.startsWith("#") && term.length <= 80);
     customTerms = [...new Set(parsed)].slice(0, 50000);
-    els.lexiconStatus.textContent = customTerms.length ? text("lexiconImported", { count: customTerms.length.toLocaleString(), file: file.name }) : text("lexiconNoTerms");
+    els.lexiconStatus.textContent = customTerms.length ? `已导入 ${customTerms.length.toLocaleString()} 个去重词条：${file.name}` : "文件中没有可用词条";
     els.clearLexicon.classList.toggle("hidden", customTerms.length === 0);
-    showToast(customTerms.length ? text("lexiconImportedToast", { count: customTerms.length.toLocaleString() }) : text("noUsableTerms"));
+    showToast(customTerms.length ? `已导入 ${customTerms.length.toLocaleString()} 个词条` : "没有识别到可用词条");
   } catch (error) {
-    customTerms = []; els.lexiconStatus.textContent = text("lexiconReadFailed"); els.clearLexicon.classList.add("hidden");
+    customTerms = []; els.lexiconStatus.textContent = "读取失败，请检查文件编码和格式"; els.clearLexicon.classList.add("hidden");
   }
 }
 
 function handleFiles(files) {
   const accepted = files.filter(f => /^image\/(png|jpeg|webp)$/.test(f.type));
-  if (!accepted.length) return showToast(text("chooseImageError"));
-  accepted.slice(0, Math.max(0, 6 - images.length)).forEach(file => images.push({ file, url: URL.createObjectURL(file), text: "", status: "imageWaiting" }));
+  if (!accepted.length) return showToast("请选择 PNG、JPG 或 WEBP 图片");
+  accepted.slice(0, Math.max(0, 6 - images.length)).forEach(file => images.push({ file, url: URL.createObjectURL(file), text: "", status: "等待识别" }));
   els.ocrBox.classList.remove("hidden");
   renderImages();
   recognizeImages();
 }
 
 function renderImages() {
-  els.imageList.innerHTML = images.map((item, i) => `<div class="image-chip"><img src="${item.url}" alt="${escapeHtml(text("imageAlt"))} ${i + 1}"><button type="button" data-remove="${i}" aria-label="${escapeHtml(text("removeImage"))}">×</button><span>${escapeHtml(text(item.status))}</span></div>`).join("");
+  els.imageList.innerHTML = images.map((item, i) => `<div class="image-chip"><img src="${item.url}" alt="待检查图片 ${i + 1}"><button type="button" data-remove="${i}" aria-label="移除图片">×</button><span>${escapeHtml(item.status)}</span></div>`).join("");
   els.imageList.querySelectorAll("[data-remove]").forEach(btn => btn.addEventListener("click", () => {
     const index = Number(btn.dataset.remove); URL.revokeObjectURL(images[index].url); images.splice(index, 1); renderImages();
     if (!images.length) els.ocrBox.classList.add("hidden");
@@ -245,24 +191,24 @@ function renderImages() {
 }
 
 async function recognizeImages() {
-  const waiting = images.filter(x => x.status === "imageWaiting");
+  const waiting = images.filter(x => x.status === "等待识别");
   if (!waiting.length) return;
-  els.ocrStatus.textContent = text("loadingOcr");
+  els.ocrStatus.textContent = "正在加载本地文字识别组件…";
   try {
     await ensureTesseract();
     for (const item of waiting) {
-      item.status = "imageRecognizing"; renderImages();
+      item.status = "识别中"; renderImages();
       const result = await window.Tesseract.recognize(item.file, "chi_sim+eng", {
-        logger: m => { if (m.status === "recognizing text") els.ocrStatus.textContent = text("recognizingProgress", { percent: Math.round((m.progress || 0) * 100) }); }
+        logger: m => { if (m.status === "recognizing text") els.ocrStatus.textContent = `正在识别图片文字 ${Math.round((m.progress || 0) * 100)}%`; }
       });
-      item.text = (result.data.text || "").trim(); item.status = item.text ? "imageRecognized" : "imageNoText"; renderImages();
-      els.ocr.value = images.map((x, i) => x.text ? `【${text("imageHeading")}${i + 1}】\n${x.text}` : "").filter(Boolean).join("\n\n");
+      item.text = (result.data.text || "").trim(); item.status = item.text ? "已识别" : "未识别到文字"; renderImages();
+      els.ocr.value = images.map((x, i) => x.text ? `【图片${i + 1}】\n${x.text}` : "").filter(Boolean).join("\n\n");
     }
-    els.ocrStatus.textContent = text("ocrDone");
+    els.ocrStatus.textContent = "识别完成，可手动校正";
   } catch (error) {
-    waiting.forEach(item => item.status = "imageFailed"); renderImages();
-    els.ocrStatus.textContent = text("ocrFailed");
-    showToast(text("ocrUnavailable"));
+    waiting.forEach(item => item.status = "识别失败"); renderImages();
+    els.ocrStatus.textContent = "自动识别失败，可手动粘贴图片文字";
+    showToast("图片识别暂不可用，可在识别框中手动输入文字");
   }
 }
 
@@ -279,8 +225,8 @@ async function analyzeAll() {
   if (els.strictToggle.checked && strictLoadPromise) await strictLoadPromise;
   const selected = [...document.querySelectorAll('.platform-picker input:checked')].map(x => x.value);
   const sections = [els.title.value.trim(), els.body.value.trim(), els.ocr.value.trim()].filter(Boolean);
-  if (!sections.length) return showToast(text("enterContent"));
-  if (!selected.length) return showToast(text("choosePlatformError"));
+  if (!sections.length) return showToast("请先输入标题、正文或图片文字");
+  if (!selected.length) return showToast("请至少选择一个平台");
   const fullText = sections.join("\n\n");
   report = Object.fromEntries(selected.map(platform => [platform, analyzePlatform(platform, fullText)]));
   activePlatform = selected.includes(activePlatform) ? activePlatform : selected[0];
@@ -430,38 +376,24 @@ function regexMatches(text, source) {
 
 function renderReport() {
   els.empty.classList.add("hidden"); els.results.classList.remove("hidden"); els.copy.classList.remove("hidden");
-  els.summaries.innerHTML = Object.values(report).map(r => `<div class="summary-card ${r.passed ? "pass" : "risk"}"><div class="top"><strong>${platformName(r.platform)}</strong><span class="status-icon">${r.passed ? "✓" : "!"}</span></div><p>${r.passed ? text("noObviousRisk") : quantity("riskClasses", r.hits.length)}</p></div>`).join("");
-  els.tabs.innerHTML = Object.keys(report).map(platform => `<button class="platform-tab" role="tab" aria-selected="${platform === activePlatform}" data-platform="${platform}">${platformName(platform)}</button>`).join("");
+  els.summaries.innerHTML = Object.values(report).map(r => `<div class="summary-card ${r.passed ? "pass" : "risk"}"><div class="top"><strong>${PLATFORM_META[r.platform].name}</strong><span class="status-icon">${r.passed ? "✓" : "!"}</span></div><p>${r.passed ? "未发现明显风险" : `发现 <b>${r.hits.length}</b> 类风险`}</p></div>`).join("");
+  els.tabs.innerHTML = Object.keys(report).map(platform => `<button class="platform-tab" role="tab" aria-selected="${platform === activePlatform}" data-platform="${platform}">${PLATFORM_META[platform].name}</button>`).join("");
   els.tabs.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => { activePlatform = btn.dataset.platform; renderReport(); }));
   renderDetail(report[activePlatform]);
 }
 
 function renderDetail(r) {
+  const meta = PLATFORM_META[r.platform];
   els.detail.innerHTML = `
-    <div class="detail-status"><div><h3>${r.passed ? text("readyForReview") : text("reviseBeforePublish")}</h3><p>${platformNote(r.platform)}</p></div><span class="risk-count ${r.passed ? "pass" : ""}">${r.passed ? text("noMatches") : quantity("issueCount", r.hits.length)}</span></div>
-    <div class="highlight-box"><div class="box-title"><span>${text("originalHighlights")}</span><span>${quantity("matchCount", r.ranges.length)}</span></div><div class="highlighted-text">${highlightText(r.text, r.ranges)}</div></div>
-    <h3 class="issues-title">${text("issuesAndAdvice")}</h3>
-    ${r.passed ? `<div class="no-issue"><strong>${text("noCurrentIssue")}</strong>${text("manualChecksRemain")}</div>` : `<div class="issue-list">${r.hits.map(renderIssue).join("")}</div>`}
-    <div class="scope-note">${text("scopeNote")}</div>`;
+    <div class="detail-status"><div><h3>${r.passed ? "✓ 可以进入人工发布前复核" : "建议修改后再发布"}</h3><p>${meta.note}</p></div><span class="risk-count ${r.passed ? "pass" : ""}">${r.passed ? "未命中" : `${r.hits.length} 类问题`}</span></div>
+    <div class="highlight-box"><div class="box-title"><span>原文风险高亮</span><span>${r.ranges.length} 处命中</span></div><div class="highlighted-text">${highlightText(r.text, r.ranges)}</div></div>
+    <h3 class="issues-title">问题与修改建议</h3>
+    ${r.passed ? `<div class="no-issue"><strong>未发现当前规则库中的明显风险</strong>仍需人工确认事实真实性、素材授权、图片画面和具体类目资质。</div>` : `<div class="issue-list">${r.hits.map(renderIssue).join("")}</div>`}
+    <div class="scope-note">说明：蓝色标记属于“需结合语境复核”，不会被当成必然违规。平台审核还可能结合画面、音轨、账号状态、商品类目、资质和历史行为，本工具不能保证最终审核结果。</div>`;
 }
 
 function renderIssue(hit) {
-  const localized = localizeHit(hit);
-  return `<div class="issue-card ${hit.severity}"><div class="issue-bar"></div><div><h4>${escapeHtml(localized.category)} ${hit.found.map(t => `<span class="term-tag">${escapeHtml(t)}</span>`).join("")}</h4><p>${escapeHtml(localized.reason)}</p><p class="suggestion"><strong>${text("howToRevise")}</strong>${escapeHtml(localized.suggestion)}</p></div></div>`;
-}
-
-function localizeHit(hit) {
-  if (currentLanguage === "zh") return hit;
-  const translated = I18N.rules[hit.category];
-  if (translated) return { category: translated[0], reason: translated[1], suggestion: translated[2] };
-  if (hit.category.startsWith("严格词库 · ")) {
-    return { category: `Strict lexicon · ${hit.category.slice(7)}`, reason: "Matched a candidate term using the source project's own lexicon scope and matching behavior. Review the source and context before publishing.", suggestion: "Revise or remove the expression if the context is risky. If it is a confirmed false positive, temporarily disable strict lexicons and check again." };
-  }
-  if (hit.category.startsWith("源项目正则 · ")) {
-    const label = hit.category.slice(8);
-    return { category: `Source regex · ${I18N.labels[label] || (I18N.rules[label] && I18N.rules[label][0]) || label}`, reason: "Matched a regular-expression rule adapted from the source project rather than a simple literal word.", suggestion: "Review the context and substantiation, then remove or rewrite the expression with objective, limited wording." };
-  }
-  return { category: I18N.labels[hit.category] || hit.category, reason: "Potential platform-compliance risk detected. Review the exact context before publishing.", suggestion: "Remove or rewrite the risky expression while preserving only accurate, verifiable information." };
+  return `<div class="issue-card ${hit.severity}"><div class="issue-bar"></div><div><h4>${escapeHtml(hit.category)} ${hit.found.map(t => `<span class="term-tag">${escapeHtml(t)}</span>`).join("")}</h4><p>${escapeHtml(hit.reason)}</p><p class="suggestion"><strong>怎么改：</strong>${escapeHtml(hit.suggestion)}</p></div></div>`;
 }
 
 function highlightText(text, ranges) {
@@ -480,11 +412,11 @@ function highlightText(text, ranges) {
 
 async function copyReport() {
   if (!report) return;
-  const reportText = Object.values(report).map(r => {
-    const head = `【${platformName(r.platform)}】${r.passed ? `✓ ${text("noObviousRisk")}` : quantity("riskClasses", r.hits.length)}`;
-    return [head, ...r.hits.map(h => { const value = localizeHit(h); return `- ${value.category}: ${h.found.join(currentLanguage === "en" ? ", " : "、")}\n  ${text("reasonLabel")}${value.reason}\n  ${text("suggestionLabel")}${value.suggestion}`; })].join("\n");
+  const text = Object.values(report).map(r => {
+    const head = `【${PLATFORM_META[r.platform].name}】${r.passed ? "✓ 未发现明显风险" : `发现 ${r.hits.length} 类风险`}`;
+    return [head, ...r.hits.map(h => `- ${h.category}：${h.found.join("、")}\n  原因：${h.reason}\n  建议：${h.suggestion}`)].join("\n");
   }).join("\n\n");
-  await navigator.clipboard.writeText(reportText); showToast(text("reportCopied"));
+  await navigator.clipboard.writeText(text); showToast("检查报告已复制");
 }
 
 function showToast(message) { els.toast.textContent = message; els.toast.classList.add("show"); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => els.toast.classList.remove("show"), 2300); }
@@ -493,24 +425,25 @@ function escapeRegExp(value) { return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&
 
 async function loadStrictLexicons() {
   if (!window.PublicLexicons) {
-    els.strictStatus.textContent = text("strictUnavailable");
+    els.strictStatus.textContent = "严格词库加载器不可用，当前仅使用内置精选规则";
     return;
   }
   els.reloadStrict.disabled = true;
-  els.strictStatus.textContent = text("loadingLexicons");
+  els.strictStatus.textContent = "正在加载公开词库…";
   try {
     strictLexiconSummary = await window.PublicLexicons.loadAll((done, total) => {
-      els.strictStatus.textContent = text("loadingLexiconsProgress", { done, total });
+      els.strictStatus.textContent = `正在加载公开词库 ${done} / ${total}…`;
     });
     strictLexiconSources = strictLexiconSummary.sources;
-    renderStrictStatus();
+    const failed = strictLexiconSummary.failures.length;
+    els.strictStatus.textContent = `已加载 ${strictLexiconSummary.uniqueSourceCount} 个来源组、${strictLexiconSummary.uniqueTerms.toLocaleString()} 个去重词条、${strictLexiconSummary.patternCount.toLocaleString()} 条正则${failed ? `；${failed} 个远程来源暂时失败` : ""}`;
   } catch (error) {
-    els.strictStatus.textContent = text("lexiconLoadFailed");
+    els.strictStatus.textContent = "远程加载失败，继续使用已打包的许可词库快照";
     strictLexiconSources = Array.isArray(window.BUNDLED_LEXICON_SOURCES) ? window.BUNDLED_LEXICON_SOURCES : [];
   } finally {
     els.reloadStrict.disabled = false;
   }
 }
 
-setLanguage("zh");
+updateCounts();
 strictLoadPromise = loadStrictLexicons();

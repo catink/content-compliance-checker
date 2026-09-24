@@ -2,7 +2,9 @@
 
 [简体中文](README.md) | **English**
 
-A browser-based pre-publication checker for common text-compliance risks in Xiaohongshu, Xianyu and Douyin titles, posts, product descriptions, spoken scripts and image text. It requires no large language model, API key or installation.
+A browser-based pre-publication checker for common compliance risks in **Chinese-language content** for Xiaohongshu, Xianyu and Douyin. It checks Chinese titles, posts, product descriptions, spoken scripts and image text without requiring a large language model, API key or installation.
+
+> **Language scope:** This is not an English-content moderation engine. This English README helps English-speaking readers understand, review and deploy the project; it does not mean that the detector can reliably review English copy.
 
 ## Use It Online
 
@@ -14,19 +16,15 @@ Titles, body text and detection are processed in the current browser. The projec
 
 ## Screenshots
 
-### Chinese interface: three-platform results, source highlighting and revision guidance
-
 ![Chinese interface showing Xiaohongshu, Xianyu and Douyin compliance results](docs/images/compliance-checker-overview.png)
 
-### English interface: the same rules and results in English
+## Detection Language Scope
 
-![English interface showing platform risk summaries, highlighted source text, reasons and revision guidance](docs/images/english-interface.png)
+The detector is designed for Chinese-language platform content. Although the runtime lexicons contain many entries written with Latin characters, most of them are domains, URLs, romanized Chinese variants, platform abbreviations, brand names or auxiliary signals such as `VX`, `QQ` and `token` inside otherwise Chinese content.
 
-## Chinese and English
+A current source audit found that almost all Latin-only entries are domain-like strings, while the rule set contains almost no complete English multi-word policy coverage. Direct regression tests also showed that English medical guarantees, thesis ghostwriting, earnings guarantees and follower-manipulation copy all passed incorrectly in both built-in and strict modes.
 
-Use the `EN / 中` button in the upper-right corner to switch the interface, platform guidance, loading status, risk categories, reasons, revision suggestions and copied report between Chinese and English.
-
-The underlying lexicons and detection logic remain identical. Changing the display language does not change the compliance result, and the tool does not translate or rewrite the user's source text.
+Do not rely on this tool to moderate English-language posts. See [`docs/LANGUAGE_SCOPE_AUDIT.md`](docs/LANGUAGE_SCOPE_AUDIT.md) for the measurements and false-negative tests.
 
 ## When Self-Hosting Is Useful
 
@@ -53,7 +51,7 @@ If none of these apply, use the live version. The repository is primarily for so
 - Uses the MIT License for the project code.
 - Enables a maximum-coverage strict mode by default, combining bundled redistributable snapshots with registered public GitHub lexicons.
 - Imports custom TXT, CSV or TSV lexicons with up to 50,000 unique terms.
-- Switches the interface and report between Chinese and English without changing detection outcomes.
+- Clearly documents that the detector targets Chinese-language platform content.
 
 ## Optional Local Use
 
@@ -163,9 +161,7 @@ rule(
 - `PLATFORM_RULES.xiaohongshu`: Xiaohongshu rules.
 - `PLATFORM_RULES.xianyu`: Xianyu rules.
 - `PLATFORM_RULES.douyin`: Douyin rules.
-- `dist/i18n.js`: English interface text and English explanations for maintained rules.
-
-After adding a rule, open the site and verify its highlighting, category, explanation and revision guidance with both positive and negative examples in Chinese and English interface modes.
+After adding a rule, open the site and verify its highlighting, category, explanation and revision guidance with both positive and negative Chinese examples.
 
 ## Project Structure
 
@@ -175,13 +171,13 @@ content-compliance-checker/
 │   ├── index.html       # Page structure
 │   ├── styles.css       # Interface styles
 │   ├── app.js           # Platform rules, detection engine and interactions
-│   ├── i18n.js          # Chinese/English interface and rule explanations
 │   ├── lexicon-loader.js   # Public source registry and runtime adapters
 │   └── lexicon-snapshot.js # Generated redistributable snapshot entry point
 ├── docs/
 │   ├── RULE_SOURCES.md  # Rule sources and evidence boundaries
 │   ├── SOURCE_ADAPTER_AUDIT.md # Source behavior and adapter audit
-│   └── images/          # Real Chinese and English screenshots used in README files
+│   ├── LANGUAGE_SCOPE_AUDIT.md # Dictionary-language and English false-negative audit
+│   └── images/          # Real interface screenshot used in README files
 ├── tools/
 │   └── build_lexicon_snapshot.mjs # Refresh licensed lexicon snapshots
 ├── LICENSE

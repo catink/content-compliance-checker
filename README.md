@@ -14,19 +14,15 @@
 
 ## 界面效果
 
-### 中文界面：三平台结果、原文高亮和修改建议
+![小红书、闲鱼和抖音违禁词与内容合规检测结果](docs/images/compliance-checker-overview.png)
 
-![中文界面：小红书、闲鱼和抖音违禁词与内容合规检测结果](docs/images/compliance-checker-overview.png)
+## 适用语言：检测中文内容
 
-### English interface: the same rules and results in English
+本工具是针对小红书、闲鱼和抖音中文内容的合规自查工具，**不是英文内容审核器**。
 
-![English interface showing platform risk summaries, highlighted source text, reasons and revision guidance](docs/images/english-interface.png)
+词库中虽然存在英文字母条目，但绝大多数是网址、域名、拼音变体、平台缩写、品牌名和 `VX`、`QQ`、`token` 等中文内容中的辅助信号，不构成完整的英文平台审核词库。实际漏检测试也证明，英文医疗保证、论文代写、收益承诺和刷粉刷量文案都无法被可靠识别。
 
-## 中英文切换 / Chinese and English
-
-页面右上角提供 `EN / 中` 切换按钮。切换后，页面控件、平台说明、加载状态、风险类别、原因、修改建议和复制报告会同步切换。
-
-The `EN / 中` button in the upper-right corner switches the interface, platform guidance, loading status, risk categories, reasons, revision suggestions and copied report between Chinese and English. The underlying lexicons and detection logic remain identical, so changing the display language does not change the compliance result.
+GitHub 提供英文 README 是为了让英文读者了解、审查和部署本项目，不代表检测工具支持英文文案审核。详细统计和漏检测试见 [`docs/LANGUAGE_SCOPE_AUDIT.md`](docs/LANGUAGE_SCOPE_AUDIT.md)。
 
 ## 什么情况才需要自己部署
 
@@ -52,7 +48,6 @@ The `EN / 中` button in the upper-right corner switches the interface, platform
 - MIT License，可自由使用、修改和二次开发。
 - 默认启用“最大覆盖严格词库”：打包许可允许再分发的快照，并联网加载已登记的公开 GitHub 词库。
 - 支持导入自定义 TXT、CSV、TSV 扩展词库，最多读取 50,000 个去重词条。
-- 支持中文和英文界面及检测报告一键切换，不改变底层检测结果。
 
 ## 下载后本地使用（可选）
 
@@ -170,13 +165,13 @@ content-compliance-checker/
 │   ├── index.html       # 页面结构
 │   ├── styles.css       # 页面样式
 │   ├── app.js           # 平台规则、检测引擎和交互逻辑
-│   ├── i18n.js          # 中英文界面、风险原因和修改建议
 │   ├── lexicon-loader.js   # 公开词库来源和运行时加载器
 │   └── lexicon-snapshot.js # 可再分发词库的生成快照
 ├── docs/
 │   ├── RULE_SOURCES.md  # 规则来源和证据边界
 │   ├── SOURCE_ADAPTER_AUDIT.md # 源项目用法审计与适配说明
-│   └── images/          # README 中英文真实运行效果图
+│   ├── LANGUAGE_SCOPE_AUDIT.md # 中英文词库范围和英文漏检审计
+│   └── images/          # README 真实运行效果图
 ├── tools/
 │   └── build_lexicon_snapshot.mjs # 更新许可词库快照
 ├── LICENSE
